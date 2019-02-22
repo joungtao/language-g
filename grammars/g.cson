@@ -48,25 +48,26 @@ patterns: [
 		]
 	}
 	{
-		comment: 'Syntax error receiving channels'
-		match: '<\\-([\\t ]+)chan\\b'
-		captures:
-			1:
-				name: 'invalid.illegal.receive-channel.g'
+		comment: 'Syntax error using semicolon'
+		match: ';\\s*$'
+		name: 'invalid.illegal.semicolon.g'
 	}
 	{
-		comment: 'Syntax error sending channels'
-		match: '\\bchan([\\t ]+)<\-'
-		captures:
-			1:
-				name: 'invalid.illegal.send-channel.g'
+		comment: 'Syntax error using decrement'
+		match: '\\-\\-'
+		name: 'invalid.illegal.decrement.g'
 	}
 	{
-		comment: 'Syntax error using slices'
+		comment: 'Syntax error using increment'
+		match: '\\+\\+'
+		name: 'invalid.illegal.increment.g'
+	}
+	{
+		comment: 'Syntax error using arrays'
 		match: '\\[\\](\\s+)'
 		captures:
 			1:
-				name: 'invalid.illegal.slice.g'
+				name: 'invalid.illegal.array.g'
 	}
 	{
 		comment: 'Syntax error numeric literals'
@@ -75,7 +76,7 @@ patterns: [
 	}
 	{
 		comment: 'Built-in functions'
-		match: '\\b(copy|print)\\b(?=\\()'
+		match: '\\b(copy|print|enumerate)\\b(?=\\()'
 		name: 'support.function.builtin.g'
 	}
 	{
@@ -185,20 +186,42 @@ patterns: [
 		end: '(?!\\G)'
 		patterns: [
 			{
-				include: '#imports'
+				match: '([^\\s]+)(?:\\s+(as)\\s+([^\\s]+))?'
+				captures:
+					1:
+						name: 'entity.name.import.g'
+					2:
+						name: 'keyword.control.as.g'
+					3:
+						patterns: [
+							{
+								match: '\\d\\w*'
+								name: 'invalid.illegal.identifier.g'
+							}
+							{
+								match: '\\w+'
+								name: 'entity.alias.import.g'
+							}
+						]
 			}
 		]
 	}
 	{
-		# Variables
-		begin: '\\b(var)\\s+'
+		# Type conversions
+		# Using a begin/end here allows us to match the as keyword before the type name is typed
+		begin: '\\b(as)\\s+'
 		beginCaptures:
 			1:
-				name: 'keyword.var.g'
+				name: 'keyword.control.as.g'
 		end: '(?!\\G)'
 		patterns: [
 			{
-				include: '#variables'
+				match: '\\d\\w*'
+				name: 'invalid.illegal.identifier.g'
+			}
+			{
+				match: '\\w+'
+				name: 'entity.name.type.g'
 			}
 		]
 	}
@@ -207,7 +230,7 @@ patterns: [
 		# a =
 		# a, b, whatever =
 		# a.b, c.d =
-		match: '(?<!var)\\s*(\\w+(?:\\.\\w+)*(?>,\\s*\\w+(?:\\.\\w+)*)*)(?=\\s*=(?!=))'
+		match: '(\\w+(?:\\.\\w+)*(?>,\\s*\\w+(?:\\.\\w+)*)*)(?=\\s*=(?!=))'
 		captures:
 			1:
 				patterns: [
@@ -232,7 +255,7 @@ patterns: [
 				]
 	}
 	{
-		# Shorthand variable declaration and assignments
+		# Variable declaration and assignments
 		# a :=
 		# a, b :=
 		match: '\\w+(?:,\\s*\\w+)*(?=\\s*:=)'
@@ -348,53 +371,12 @@ repository:
 				name: 'punctuation.other.colon.g'
 			}
 		]
-	imports:
-		patterns: [
-			{
-				# Single line import declarations
-				match: '((?!\\s+")[^\\s]*)?\\s*((")([^"]*)("))'
-				captures:
-					1:
-						name: 'entity.alias.import.g'
-					2:
-						name: 'string.quoted.double.g'
-					3:
-						name: 'punctuation.definition.string.begin.g'
-					4:
-						name: 'entity.name.import.g'
-					5:
-						name: 'punctuation.definition.string.end.g'
-			}
-			{
-				# Multiline import declarations
-				begin: '\\('
-				beginCaptures:
-					0:
-						name: 'punctuation.definition.imports.begin.bracket.round.g'
-				end: '\\)'
-				endCaptures:
-					0:
-						name: 'punctuation.definition.imports.end.bracket.round.g'
-				patterns: [
-					{
-						include: '#comments'
-					}
-					{
-						include: '#imports'
-					}
-				]
-			}
-		]
 	keywords:
 		patterns: [
 			{
 				comment: 'Flow control keywords'
-				match: '\\b(break|case|continue|default|defer|else|fallthrough|for|go|goto|if|range|return|select|switch)\\b'
+				match: '\\b(break|case|continue|default|else|for|in|if|return|switch)\\b'
 				name: 'keyword.control.g'
-			}
-			{
-				match: '\\bchan\\b'
-				name: 'keyword.channel.g'
 			}
 			{
 				match: '\\bconst\\b'
@@ -409,10 +391,6 @@ repository:
 				name: 'keyword.interface.g'
 			}
 			{
-				match: '\\bmap\\b'
-				name: 'keyword.map.g'
-			}
-			{
 				match: '\\bstruct\\b'
 				name: 'keyword.struct.g'
 			}
@@ -421,28 +399,20 @@ repository:
 		comment: 'Note that the order here is very important!'
 		patterns: [
 			{
+				match: '\\b(and|or|not)\\b'
+				name: 'keyword.control.logical.g'
+			}
+			{
 				match: '(\\*|&)(?=\\w)'
 				name: 'keyword.operator.address.g'
 			}
 			{
-				match: '<\\-'
-				name: 'keyword.operator.channel.g'
-			}
-			{
-				match: '\\-\\-'
-				name: 'keyword.operator.decrement.g'
-			}
-			{
-				match: '\\+\\+'
-				name: 'keyword.operator.increment.g'
+				match: '(\\*|&)(?=\\w)'
+				name: 'keyword.operator.address.g'
 			}
 			{
 				match: '(==|!=|<=|>=|<(?!<)|>(?!>))'
 				name: 'keyword.operator.comparison.g'
-			}
-			{
-				match: '(&&|\\|\\||!)'
-				name: 'keyword.operator.logical.g'
 			}
 			{
 				match: '(=|\\+=|\\-=|\\|=|\\^=|\\*=|/=|:=|%=|<<=|>>=|&\\^=|&=)'
@@ -496,11 +466,7 @@ repository:
 				name: 'storage.type.byte.g'
 			}
 			{
-				match: '\\berror\\b'
-				name: 'storage.type.error.g'
-			}
-			{
-				match: '\\b(complex(64|128)|float(32|64)|u?int(8|16|32|64)?)\\b'
+				match: '\\b(float|int)\\b'
 				name: 'storage.type.numeric.g'
 			}
 			{
@@ -512,8 +478,8 @@ repository:
 				name: 'storage.type.string.g'
 			}
 			{
-				match: '\\buintptr\\b'
-				name: 'storage.type.uintptr.g'
+				match: '\\btype\\b'
+				name: 'storage.type.meta.g'
 			}
 		]
 	string_escaped_char:
@@ -532,93 +498,5 @@ repository:
 			{
 				match: '%(\\[\\d+\\])?([\\+#\\-0\\x20]{,2}((\\d+|\\*)?(\\.?(\\d+|\\*|(\\[\\d+\\])\\*?)?(\\[\\d+\\])?)?))?[vT%tbcdoqxXUbeEfFgGsp]'
 				name: 'constant.other.placeholder.g'
-			}
-		]
-	variables:
-		# First add tests and make sure existing tests still pass when changing anything here!
-		patterns: [
-			{
-				# var a =
-				# var a string =
-				# var a, b =
-				# var a, b *c =
-				# var a string =
-				# var a b.c
-				# var a *b.c =
-				match: '(\\w+(?:,\\s*\\w+)*)(\\s+\\*?\\w+(?:\\.\\w+)?\\s*)?(?=\\s*=)'
-				captures:
-					1:
-						patterns: [
-							{
-								match: '\\d\\w*'
-								name: 'invalid.illegal.identifier.g'
-							}
-							{
-								match: '\\w+'
-								name: 'variable.other.assignment.g'
-							}
-							{
-								include: '#delimiters'
-							}
-						]
-					2:
-						patterns: [
-							{
-								include: '$self'
-							}
-						]
-			}
-			{
-				# var a
-				# var a string
-				# var a, b string
-				# var a []string
-				# var a [3]string
-				# var a [...]string
-				# var a [][]*string
-				# var a c.d
-				# var a []c.d
-				# var a <-chan string
-				match: '(\\w+(?:,\\s*\\w+)*)(\\s+(\\[(\\d*|\\.\\.\\.)\\])*\\*?(<-)?\\w+(?:\\.\\w+)?\\s*[^=].*)'
-				captures:
-					1:
-						patterns: [
-							{
-								match: '\\d\\w*'
-								name: 'invalid.illegal.identifier.g'
-							}
-							{
-								match: '\\w+'
-								name: 'variable.other.declaration.g'
-							}
-							{
-								include: '#delimiters'
-							}
-						]
-					2:
-						patterns: [
-							{
-								include: '$self'
-							}
-						]
-			}
-			{
-				# Multiline variable declarations/assignments
-				begin: '\\('
-				beginCaptures:
-					0:
-						name: 'punctuation.definition.variables.begin.bracket.round.g'
-				end: '\\)'
-				endCaptures:
-					0:
-						name: 'punctuation.definition.variables.end.bracket.round.g'
-				patterns: [
-					{
-						include: '$self'
-					}
-					{
-						include: '#variables'
-					}
-				]
 			}
 		]
