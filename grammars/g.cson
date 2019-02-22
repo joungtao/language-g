@@ -1,0 +1,624 @@
+scopeName: 'source.g'
+name: 'G'
+comment: 'G language'
+fileTypes: [
+	'g'
+]
+foldingStartMarker: '({|\\()\\s*$'
+foldingStopMarker: '(}|\\))\\s*$'
+patterns: [
+	{
+		include: '#comments'
+	}
+	{
+		comment: 'Interpreted string literals'
+		begin: '"'
+		beginCaptures:
+			0:
+				name: 'punctuation.definition.string.begin.g'
+		end: '"'
+		endCaptures:
+			0:
+				name: 'punctuation.definition.string.end.g'
+		name: 'string.quoted.double.g'
+		patterns: [
+			{
+				include: '#string_escaped_char'
+			}
+			{
+				include: '#string_placeholder'
+			}
+		]
+	}
+	{
+		comment: 'Raw string literals'
+		begin: '`'
+		beginCaptures:
+			0:
+				name: 'punctuation.definition.string.begin.g'
+		end: '`'
+		endCaptures:
+			0:
+				name: 'punctuation.definition.string.end.g'
+		name: 'string.quoted.raw.g',
+		patterns: [
+			{
+				include: '#string_placeholder'
+			}
+		]
+	}
+	{
+		comment: 'Syntax error receiving channels'
+		match: '<\\-([\\t ]+)chan\\b'
+		captures:
+			1:
+				name: 'invalid.illegal.receive-channel.g'
+	}
+	{
+		comment: 'Syntax error sending channels'
+		match: '\\bchan([\\t ]+)<\-'
+		captures:
+			1:
+				name: 'invalid.illegal.send-channel.g'
+	}
+	{
+		comment: 'Syntax error using slices'
+		match: '\\[\\](\\s+)'
+		captures:
+			1:
+				name: 'invalid.illegal.slice.g'
+	}
+	{
+		comment: 'Syntax error numeric literals'
+		match: '\\b0[0-7]*[89]\\d*\\b'
+		name: 'invalid.illegal.numeric.g'
+	}
+	{
+		comment: 'Built-in functions'
+		match: '\\b(copy|print)\\b(?=\\()'
+		name: 'support.function.builtin.g'
+	}
+	{
+		comment: 'Function declarations'
+		match: '^(\\bfunc\\b)(?:\\s+(\\([^\\)]+\\)\\s+)?(\\w+)(?=\\())?'
+		captures:
+			1:
+				name: 'keyword.function.g'
+			2:
+				patterns: [
+					{
+						include: '#brackets'
+					}
+					{
+						include: '#operators'
+					}
+				]
+			3:
+				patterns: [
+					{
+						match: '\\d\\w*'
+						name: 'invalid.illegal.identifier.g'
+					}
+					{
+						match: '\\w+'
+						name: 'entity.name.function.g'
+					}
+				]
+	}
+	{
+		comment: 'Functions'
+		match: '(\\bfunc\\b)|(\\w+)(?=\\()'
+		captures:
+			1:
+				name: 'keyword.function.g'
+			2:
+				patterns: [
+					{
+						match: '\\d\\w*'
+						name: 'invalid.illegal.identifier.g'
+					}
+					{
+						match: '\\w+'
+						name: 'support.function.g'
+					}
+				]
+	}
+	{
+		comment: 'Floating-point literals'
+		match: '(\\.\\d+([Ee][\-\+]\\d+)?i?)\\b|\\b\\d+\\.\\d*(([Ee][\-\+]\\d+)?i?\\b)?'
+		name: 'constant.numeric.floating-point.g'
+	}
+	{
+		comment: 'Integers'
+		match: '\\b((0x[0-9a-fA-F]+)|(0[0-7]+i?)|(\\d+([Ee]\\d+)?i?)|(\\d+[Ee][\-\+]\\d+i?))\\b'
+		name: 'constant.numeric.integer.g'
+	}
+	{
+		comment: 'Language constants'
+		match: '\\b(true|false|nil)\\b'
+		name: 'constant.language.g'
+	}
+	{
+		# Package declarations
+		# Using a begin/end here allows us to match the package keyword before the package name is typed
+		begin: '\\b(package)\\s+'
+		beginCaptures:
+			1:
+				name: 'keyword.package.g'
+		end: '(?!\\G)'
+		patterns: [
+			{
+				match: '\\d\\w*'
+				name: 'invalid.illegal.identifier.g'
+			}
+			{
+				match: '\\w+'
+				name: 'entity.name.package.g'
+			}
+		]
+	}
+	{
+		# Type declarations
+		# Using a begin/end here allows us to match the type keyword before the type name is typed
+		begin: '\\b(type)\\s+'
+		beginCaptures:
+			1:
+				name: 'keyword.type.g'
+		end: '(?!\\G)'
+		patterns: [
+			{
+				match: '\\d\\w*'
+				name: 'invalid.illegal.identifier.g'
+			}
+			{
+				match: '\\w+'
+				name: 'entity.name.type.g'
+			}
+		]
+	}
+	{
+		# Imports
+		begin: '\\b(import)\\s+'
+		beginCaptures:
+			1:
+				name: 'keyword.import.g'
+		end: '(?!\\G)'
+		patterns: [
+			{
+				include: '#imports'
+			}
+		]
+	}
+	{
+		# Variables
+		begin: '\\b(var)\\s+'
+		beginCaptures:
+			1:
+				name: 'keyword.var.g'
+		end: '(?!\\G)'
+		patterns: [
+			{
+				include: '#variables'
+			}
+		]
+	}
+	{
+		# Assignments to existing variables
+		# a =
+		# a, b, whatever =
+		# a.b, c.d =
+		match: '(?<!var)\\s*(\\w+(?:\\.\\w+)*(?>,\\s*\\w+(?:\\.\\w+)*)*)(?=\\s*=(?!=))'
+		captures:
+			1:
+				patterns: [
+					{
+						match: '\\d\\w*'
+						name: 'invalid.illegal.identifier.g'
+					}
+					{
+						match: '\\w+(?:\\.\\w+)*'
+						name: 'variable.other.assignment.g'
+						captures:
+							0:
+								patterns: [
+									{
+										include: '#delimiters'
+									}
+								]
+					}
+					{
+						include: '#delimiters'
+					}
+				]
+	}
+	{
+		# Shorthand variable declaration and assignments
+		# a :=
+		# a, b :=
+		match: '\\w+(?:,\\s*\\w+)*(?=\\s*:=)'
+		captures:
+			0:
+				patterns: [
+					{
+						match: '\\d\\w*'
+						name: 'invalid.illegal.identifier.g'
+					}
+					{
+						match: '\\w+'
+						name: 'variable.other.assignment.g'
+					}
+					{
+						include: '#delimiters'
+					}
+				]
+	}
+	{
+		comment: 'Terminators'
+		match: ';'
+		name: 'punctuation.terminator.g'
+	}
+	{
+		include: '#brackets'
+	}
+	{
+		include: '#delimiters'
+	}
+	{
+		include: '#keywords'
+	}
+	{
+		include: '#operators'
+	}
+	{
+		include: '#runes'
+	}
+	{
+		include: '#storage_types'
+	}
+]
+repository:
+	brackets:
+		patterns: [
+			{
+				begin: '{'
+				beginCaptures:
+					0:
+						name: 'punctuation.definition.begin.bracket.curly.g'
+				end: '}'
+				endCaptures:
+					0:
+						name: 'punctuation.definition.end.bracket.curly.g'
+				patterns: [
+					{
+						include: '$self'
+					}
+				]
+			}
+			{
+				begin: '\\('
+				beginCaptures:
+					0:
+						name: 'punctuation.definition.begin.bracket.round.g'
+				end: '\\)'
+				endCaptures:
+					0:
+						name: 'punctuation.definition.end.bracket.round.g'
+				patterns: [
+					{
+						include: '$self'
+					}
+				]
+			}
+			{
+				match: '\\[|\\]'
+				name: 'punctuation.definition.bracket.square.g'
+			}
+		]
+	comments:
+		patterns: [
+			{
+				begin: '/\\*'
+				end: '\\*/'
+				captures:
+					0:
+						name: 'punctuation.definition.comment.g'
+				name: 'comment.block.g'
+			}
+			{
+				begin: '//'
+				beginCaptures:
+					0:
+						name: 'punctuation.definition.comment.g'
+				end: '$'
+				name: 'comment.line.double-slash.g'
+			}
+		]
+	delimiters:
+		patterns: [
+			{
+				match: ','
+				name: 'punctuation.other.comma.g'
+			}
+			{
+				match: '\\.(?!\\.\\.)'
+				name: 'punctuation.other.period.g'
+			}
+			{
+				match: ':(?!=)'
+				name: 'punctuation.other.colon.g'
+			}
+		]
+	imports:
+		patterns: [
+			{
+				# Single line import declarations
+				match: '((?!\\s+")[^\\s]*)?\\s*((")([^"]*)("))'
+				captures:
+					1:
+						name: 'entity.alias.import.g'
+					2:
+						name: 'string.quoted.double.g'
+					3:
+						name: 'punctuation.definition.string.begin.g'
+					4:
+						name: 'entity.name.import.g'
+					5:
+						name: 'punctuation.definition.string.end.g'
+			}
+			{
+				# Multiline import declarations
+				begin: '\\('
+				beginCaptures:
+					0:
+						name: 'punctuation.definition.imports.begin.bracket.round.g'
+				end: '\\)'
+				endCaptures:
+					0:
+						name: 'punctuation.definition.imports.end.bracket.round.g'
+				patterns: [
+					{
+						include: '#comments'
+					}
+					{
+						include: '#imports'
+					}
+				]
+			}
+		]
+	keywords:
+		patterns: [
+			{
+				comment: 'Flow control keywords'
+				match: '\\b(break|case|continue|default|defer|else|fallthrough|for|go|goto|if|range|return|select|switch)\\b'
+				name: 'keyword.control.g'
+			}
+			{
+				match: '\\bchan\\b'
+				name: 'keyword.channel.g'
+			}
+			{
+				match: '\\bconst\\b'
+				name: 'keyword.const.g'
+			}
+			{
+				match: '\\bfunc\\b'
+				name: 'keyword.function.g'
+			}
+			{
+				match: '\\binterface\\b'
+				name: 'keyword.interface.g'
+			}
+			{
+				match: '\\bmap\\b'
+				name: 'keyword.map.g'
+			}
+			{
+				match: '\\bstruct\\b'
+				name: 'keyword.struct.g'
+			}
+		]
+	operators:
+		comment: 'Note that the order here is very important!'
+		patterns: [
+			{
+				match: '(\\*|&)(?=\\w)'
+				name: 'keyword.operator.address.g'
+			}
+			{
+				match: '<\\-'
+				name: 'keyword.operator.channel.g'
+			}
+			{
+				match: '\\-\\-'
+				name: 'keyword.operator.decrement.g'
+			}
+			{
+				match: '\\+\\+'
+				name: 'keyword.operator.increment.g'
+			}
+			{
+				match: '(==|!=|<=|>=|<(?!<)|>(?!>))'
+				name: 'keyword.operator.comparison.g'
+			}
+			{
+				match: '(&&|\\|\\||!)'
+				name: 'keyword.operator.logical.g'
+			}
+			{
+				match: '(=|\\+=|\\-=|\\|=|\\^=|\\*=|/=|:=|%=|<<=|>>=|&\\^=|&=)'
+				name: 'keyword.operator.assignment.g'
+			}
+			{
+				match: '(\\+|\\-|\\*|/|%)'
+				name: 'keyword.operator.arithmetic.g'
+			}
+			{
+				match: '(&(?!\\^)|\\||\\^|&\\^|<<|>>)'
+				name: 'keyword.operator.arithmetic.bitwise.g'
+			}
+			{
+				match: '\\.\\.\\.'
+				name: 'keyword.operator.ellipsis.g'
+			}
+		]
+	runes:
+		patterns: [
+			{
+				begin: "'"
+				beginCaptures:
+					0:
+						name: 'punctuation.definition.string.begin.g'
+				end: "'"
+				endCaptures:
+					0:
+						name: 'punctuation.definition.string.end.g'
+				name: 'string.quoted.rune.g'
+				patterns: [
+					{
+						match: "\\G(\\\\([0-7]{3}|[abfnrtv\\\\'\"]|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|U[0-9a-fA-F]{8})|.)(?=')"
+						name: 'constant.other.rune.g'
+					}
+					{
+						match: "[^']+"
+						name: 'invalid.illegal.unknown-rune.g'
+					}
+				]
+			}
+		]
+	storage_types:
+		patterns: [
+			{
+				match: '\\bbool\\b'
+				name: 'storage.type.boolean.g'
+			}
+			{
+				match: '\\bbyte\\b'
+				name: 'storage.type.byte.g'
+			}
+			{
+				match: '\\berror\\b'
+				name: 'storage.type.error.g'
+			}
+			{
+				match: '\\b(complex(64|128)|float(32|64)|u?int(8|16|32|64)?)\\b'
+				name: 'storage.type.numeric.g'
+			}
+			{
+				match: '\\brune\\b'
+				name: 'storage.type.rune.g'
+			}
+			{
+				match: '\\bstring\\b'
+				name: 'storage.type.string.g'
+			}
+			{
+				match: '\\buintptr\\b'
+				name: 'storage.type.uintptr.g'
+			}
+		]
+	string_escaped_char:
+		patterns: [
+			{
+				match: '\\\\([0-7]{3}|[abfnrtv\\\\\'"]|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|U[0-9a-fA-F]{8})'
+				name: 'constant.character.escape.g'
+			}
+			{
+				match: '\\\\[^0-7xuUabfnrtv\\\'"]'
+				name: 'invalid.illegal.unknown-escape.g'
+			}
+		]
+	string_placeholder:
+		patterns: [
+			{
+				match: '%(\\[\\d+\\])?([\\+#\\-0\\x20]{,2}((\\d+|\\*)?(\\.?(\\d+|\\*|(\\[\\d+\\])\\*?)?(\\[\\d+\\])?)?))?[vT%tbcdoqxXUbeEfFgGsp]'
+				name: 'constant.other.placeholder.g'
+			}
+		]
+	variables:
+		# First add tests and make sure existing tests still pass when changing anything here!
+		patterns: [
+			{
+				# var a =
+				# var a string =
+				# var a, b =
+				# var a, b *c =
+				# var a string =
+				# var a b.c
+				# var a *b.c =
+				match: '(\\w+(?:,\\s*\\w+)*)(\\s+\\*?\\w+(?:\\.\\w+)?\\s*)?(?=\\s*=)'
+				captures:
+					1:
+						patterns: [
+							{
+								match: '\\d\\w*'
+								name: 'invalid.illegal.identifier.g'
+							}
+							{
+								match: '\\w+'
+								name: 'variable.other.assignment.g'
+							}
+							{
+								include: '#delimiters'
+							}
+						]
+					2:
+						patterns: [
+							{
+								include: '$self'
+							}
+						]
+			}
+			{
+				# var a
+				# var a string
+				# var a, b string
+				# var a []string
+				# var a [3]string
+				# var a [...]string
+				# var a [][]*string
+				# var a c.d
+				# var a []c.d
+				# var a <-chan string
+				match: '(\\w+(?:,\\s*\\w+)*)(\\s+(\\[(\\d*|\\.\\.\\.)\\])*\\*?(<-)?\\w+(?:\\.\\w+)?\\s*[^=].*)'
+				captures:
+					1:
+						patterns: [
+							{
+								match: '\\d\\w*'
+								name: 'invalid.illegal.identifier.g'
+							}
+							{
+								match: '\\w+'
+								name: 'variable.other.declaration.g'
+							}
+							{
+								include: '#delimiters'
+							}
+						]
+					2:
+						patterns: [
+							{
+								include: '$self'
+							}
+						]
+			}
+			{
+				# Multiline variable declarations/assignments
+				begin: '\\('
+				beginCaptures:
+					0:
+						name: 'punctuation.definition.variables.begin.bracket.round.g'
+				end: '\\)'
+				endCaptures:
+					0:
+						name: 'punctuation.definition.variables.end.bracket.round.g'
+				patterns: [
+					{
+						include: '$self'
+					}
+					{
+						include: '#variables'
+					}
+				]
+			}
+		]

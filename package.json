@@ -1,0 +1,17 @@
+{
+  "name": "language-g",
+  "version": "0.1.0",
+  "description": "Actively maintained G language file support in Atom.",
+  "license": "MIT",
+  "keywords": [
+    "GLUE"
+  ],
+  "engines": {
+    "atom": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joungtao/language-g"
+  },
+  "dependencies": {}
+}

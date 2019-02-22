@@ -1,0 +1,46 @@
+'.source.g':
+  'import':
+    'prefix': 'im'
+    'body': 'import "${1:package}"'
+  'constant':
+    'prefix': 'co'
+    'body': "const ${1:name} := ${2:value}"
+  'type interface declaration':
+    'prefix': 'tyi'
+    'body': "type ${1:name} interface {\n\t$0\n}"
+  'type struct declaration':
+    'prefix': 'tys'
+    'body': "type ${1:name} struct {\n\t$0\n}"
+  'type function declaration':
+    'prefix': 'tyf'
+    'body': 'type ${1:name} func(${2:commonParam}) ${3:returnParam}'
+  'function declaration':
+    'prefix': 'func'
+    'body': "func $1($2) $3 {\n\t$0\n}"
+  'switch statement':
+    'prefix': 'switch'
+    'body': "switch ${1:expression} {\ncase ${2:condition}:\n\t$0\n}"
+  'case clause':
+    'prefix': 'cs'
+    'body': "case ${1:condition}:$0"
+  'for statement':
+    'prefix': 'for'
+    'body':  "for ${1:index} := 0; $1 < ${2:count}; $1${3:++} {\n\t$0\n}"
+  'foreach statement':
+    'prefix': 'forr'
+    'body': "for ${1:var} in ${2:var} {\n\t$0\n}"
+  'if statement':
+    'prefix': 'if'
+    'body': "if ${1:condition} {\n\t$0\n}"
+  'else branch':
+    'prefix': 'el'
+    'body': "else {\n\t$0\n}"
+  'if else statement':
+    'prefix': 'ie'
+    'body': "if ${1:condition} {\n\t$2\n} else {\n\t$0\n}"
+  'run anonymous function':
+    'prefix': 'run'
+    'body': 'run(func($1) {\n\t$2\n})($0)'
+  'run function':
+    'prefix': 'rf'
+    'body': 'run(${1:func})($0)'

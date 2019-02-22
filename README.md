@@ -1,2 +1,3 @@
-# language-g
-G language support in Atom
+# G language support in Atom
+
+Adds syntax highlighting and snippets for G language files in Atom.
