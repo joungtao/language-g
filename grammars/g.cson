@@ -383,6 +383,18 @@ repository:
 				name: 'keyword.const.g'
 			}
 			{
+				match: '\\bmutable\\b'
+				name: 'keyword.mutable.g'
+			}
+			{
+				match: '\\bglobal\\b'
+				name: 'keyword.global.g'
+			}
+			{
+				match: '\\bvoid\\b'
+				name: 'keyword.void.g'
+			}
+			{
 				match: '\\bfunc\\b'
 				name: 'keyword.function.g'
 			}
